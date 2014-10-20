@@ -31,75 +31,95 @@ class UploadController{
 	
 	public function doController()
 	{	
-		//$message = $this->upload->ReadFromNote();
-		//$this->loggedInView->TextAreaMessage($message);
+		$message = $this->upload->ReadFromNote();
+		$this->loggedInView->TextAreaMessage($message);
 		
 		
 		//Försök göra en switch eller något här
 		if($this->loggedInView->showAllFiles())
 		{
-			$this->upload->listUploadedFiles(1);
+			$message = $this->upload->listUploadedFiles(1);
+			return $message;
 		}
 		if($this->loggedInView->showAudioFiles())
 		{
-			$this->upload->listUploadedFiles(2);
+			$message = $this->upload->listUploadedFiles(2);
+			return $message;
 		}
 		if($this->loggedInView->showVideoFiles())
 		{
-			$this->upload->listUploadedFiles(3);
+			$message = $this->upload->listUploadedFiles(3);
+			return $message;
 		}
 		if($this->loggedInView->showImageFiles())
 		{
-			$this->upload->listUploadedFiles(4);
+			$message = $this->upload->listUploadedFiles(4);
+			return $message;
 		}
 		if($this->loggedInView->showOtherFiles())
 		{
-			$this->upload->listUploadedFiles(5);
+			$message = $this->upload->listUploadedFiles(5);
+			return $message;
 		}
 		
 		if($this->loggedInView->ClickedDeleteFile())
 		{
 			$id = $this->loggedInView->deleteFile();
-			$this->upload->DeleteFileFromDatabase($id);
+			$message = $this->upload->DeleteFileFromDatabase($id);
 			
-			$message = $this->loggedInView->fileWasRemoved();
-			$this->loggedInView->displayMessage($message);
+			return $message;
 		}
 		
 		if($this->loggedInView->ClickedSearch())
 		{
 			$searchString = $this->loggedInView->SearchFile();
-			$this->upload->SearchForFile($searchString);
+			$message = $this->upload->SearchForFile($searchString);
+			return $message;
 		}
 		
 		if($this->loggedInView->ClickedSaveNote())
 		{
 			$saveNote = $this->loggedInView->SaveNote();
-			$this->upload->SaveInputNote($saveNote);
+			$message = $this->upload->SaveInputNote($saveNote);
+			$note = $this->upload->ReadFromNote();
+			return $message;
 		}
-		
+
 		if($this->loggedInView->uploadFile());
 		{
 			$selected_radio = $this->loggedInView->RadioButtonValue();
 			$chmodValue = $this->loggedInView->chModButtonValue();
+			$this->loggedInView->collectFileNames();
 			$name = $this->loggedInView->getFileName();
 			$file = $this->loggedInView->getFileTemp();
-			if($this->upload->isTheFileValid($file, $name))
-			{
-				$this->upload->uploadFile($file, $name, $selected_radio,$chmodValue);
-			}
+					$m = $this->upload->sameNameOnFile($name);
+					if($this->upload->sameNameOnFile($name))
+					{
+						return "FileNameAlreadyExist";
+					}
+					if($this->upload->isTheFileValid($file, $name))
+					{
+						return "fileIsNotValidFormat";
+					}	
+					$message = $this->upload->uploadFile($file, $name, $selected_radio, $chmodValue);
+					return $message;					
+
 		}
+
 		if($id = $this->loggedInView->videoPlayback())
 		{
-			$this->upload->PlayVideoFile($id);
+			$message = $this->upload->PlayVideoFile($id);
+			return $message;
 		}
 		if($id = $this->loggedInView->audioPlayback())
 		{
-			$this->upload->PlayAudioFile($id);
+			$message = $this->upload->PlayAudioFile($id);
+			return $message;
 		}
 		if($id = $this->loggedInView->imagePlayback())
 		{
-			$this->upload->ShowImageFile($id);
+			$message = $this->upload->ShowImageFile($id);
+			return $message;
 		}
 	}
 }

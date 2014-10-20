@@ -40,4 +40,11 @@ ul
 	margin:auto;
 	background-position: center; 
 }
+#uploadedFiles
+{
+	border-style: solid;
+    border-width: medium;
+	width: 500px;
+	background-color: F7C63C;
+}
 

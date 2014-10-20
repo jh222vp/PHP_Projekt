@@ -39,6 +39,63 @@ class LoginController{
 	}
 	
 	
+	public function messageOutToUser($choice)
+	{
+		if(is_array($choice))
+		{
+			foreach($choice as $item)
+			{
+				$this->loggedInView->displayAllFilesMessage($choice);
+			}
+		}
+		else
+		{
+		switch($choice)
+		{
+		
+			case "delete": {$message = $this->loggedInView->fileWasRemoved();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "NoteIsSaved": {$message = $this->loggedInView->NoteHasBeenSaved();
+			$this->loggedInView->displayMessage($message);
+			$m= $this->upload->ReadFromNote();
+			$this->loggedInView->TextAreaMessage($m); break;}
+			
+			case "fileWasUploaded": {$message = $this->loggedInView->fileIsUploaded();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "fileWasNotUploaded": {$message = $this->loggedInView->fileIsNotUploaded();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "NotDelete": {$message = $this->loggedInView->fileIsNotDeleted();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "chmodFailed": {$message = $this->loggedInView->chmodFailed();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "NoSearchFileFound": {$message = $this->loggedInView->NoSearchFileFound();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "fileIsNotValidFormat": {$message = $this->loggedInView->fileIsNotInValidFormat();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			case "FileNameAlreadyExist": {$message = $this->loggedInView->fileNameAlreadyExist();
+			$this->loggedInView->displayMessage($message);break;}
+			
+			
+			
+
+			default: {$this->loggedInView->displayMessage($choice); break;};
+			
+		}
+	}
+}
+	
+	
+	
+	
+	
+	
 	
 	public function doController(){
 		$wBrowserAgent = $this->serviceHelper->userAgent();
@@ -58,7 +115,8 @@ class LoginController{
 		//Här visas antingen inloggningsvyn eller inloggadVyn
 		if($this->model->getUserIsAuthenticated($wBrowserAgent))
 		{
-			$this->uploadController->doController();
+			$choice = $this->uploadController->doController();
+			$this->messageOutToUser($choice);
 			return $this->loggedInView->LoggedInView();
 		}
 		else

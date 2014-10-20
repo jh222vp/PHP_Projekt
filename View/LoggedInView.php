@@ -1,6 +1,7 @@
 ﻿<?php 
 
 	require_once('.\Model\UploadModel.php');
+	require_once('.\Controller\LoginController.php');
 	
 	class LoggedInView{
 	
@@ -50,8 +51,11 @@
 	
 	public function collectFileNames()
 	{
+		if(isset($_FILES['file']['name']))
+		{
 		$this->name = $_FILES['file']['name'];
-		$thos->temp = $_FILES['file']['tmp_name'];
+		$this->temp = $_FILES['file']['tmp_name'];
+		}
 	}
 	
 	public function getFileName()
@@ -103,8 +107,11 @@
 	{
 		if(isset($_GET['saveNote']))
 		{
-			$saveNote = $_POST['formPostDescription'];
-			return $saveNote;
+			if(isset($_POST['formPostDescription']))
+			{
+				$saveNote = $_POST['formPostDescription'];
+				return $saveNote;
+			}
 		}
 	}
 	
@@ -190,6 +197,12 @@
 	}
 	
 	//Visar meddelande
+	
+	public function displayAllFilesMessage($message)
+	{
+		$this->message = implode($message);
+	}
+	
 	public function displayMessage($message)
 	{
 		$this->message = $message;
@@ -201,19 +214,61 @@
 	}
 	
 	//Visar utloggningsmeddelande
-	public function logOutMessage(){
+	public function logOutMessage()
+	{
 		return $this->message = "Du är nu utloggad";
 	}
 	
-	public function fileWasRemoved(){
-		return $this->message = "Du tog bort en fil";
+	public function NoteHasBeenSaved()
+	{
+		return $this->message = "Du sparade undan ett stycke text";
 	}
+	
+	public function fileIsUploaded()
+	{
+		return $this->message = "Du har laddat upp en fil";
+	}
+	
+	public function fileIsNotUploaded()
+	{
+		return $this->message = "Filen är i fel format, försök med en godkänd filtyp";
+	}
+	
+	public function fileIsNotDeleted()
+	{
+		return $this->message = "Gick inte att ta bort filen, rättigheter..?";
+	}
+	
+	public function chmodFailed()
+	{
+		return $this->message = "Lyckades inte sätta de önskade rättigheterna på filen..";
+	}
+	
+	public function NoSearchFileFound()
+	{
+		return $this->message = "Ingen fil hittades vid sökning";
+	}
+	
+	public function fileWasRemoved()
+	{
+		return $this->message = "Du tog bort en fil!";
+	}
+	
+	public function fileIsNotInValidFormat()
+	{
+		return $this->message = "Filen är inte i ett godkänt format!";
+	}
+	public function fileNameAlreadyExist()
+	{
+		return $this->message = "Filnamnet finns redan i datorbasen, byt namn på filen!";
+	}
+	
 	
 	//Vad som ska visas när man är inloggad.
 	public function LoggedInView()
 	{
 		$ret = "<div id='container'>
-		<p>$this->message</p>
+		
 		<div id='main'>
 		<center></center>
         </div>
@@ -228,6 +283,7 @@
             </ul>
 		</center>
         </div>
+		
 		<center>
 		<div id='upload'>
 		
@@ -239,9 +295,9 @@
 		<input type='radio' name='media' value='other' checked>Övrig
 		<br>
 		<p>Rättigheter!</P>
-		<input type='radio' name='chmod' value='0678'>0678
-		<input type='radio' name='chmod' value='777'>777
-		<input type='radio' name='chmod' value='0000' checked>0000
+		<input type='radio' name='chmod' value='0678'>678
+		<input type='radio' name='chmod' value='0676'>777
+		<input type='radio' name='chmod' value='0766' checked>766
 		<br>
 
 		
@@ -250,17 +306,22 @@
 		</form>
 		
 		<form action='?search' method='POST'>  
-		Search: <input type='text' name='term' /><br />  
-		<input type='submit' value='Submit' />  
+		Search: <input type='text' name='term' />  
+		<input type='submit' value='Search!' />  
 		</form>
 
 		<form action='?saveNote' method='POST'>
 		<textarea rows='6' cols='50' name='formPostDescription'>
-		$this->storedNote
+$this->storedNote
 		</textarea>
 		<input type='submit'>
 		</form>	
 		
+		</div>
+		</center>
+		<center>
+		<div id='uploadedFiles'>
+		<p>$this->message</p>
 		</div>
 		</center>
 		<a href='?logOut'>Logga ut</a>";
