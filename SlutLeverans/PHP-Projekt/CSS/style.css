@@ -1,0 +1,46 @@
+body {
+    background-image: url('bggg.png');
+}
+div.image {
+	background-image:url('bg.png');
+    height:20%;
+    background-repeat: no-repeat;
+	margin:auto;
+	background-position: center; 
+}​
+ul
+{
+	list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+li
+{
+    display: inline;
+}
+#loginSquare
+{
+	width: 600px;
+}
+#upload
+{
+	border-style: solid;
+    border-width: medium;
+	width: 500px;
+	background-image: url('stripe.png');
+}
+#main
+{
+	background-image:url('bg.png');
+    height:20%;
+    background-repeat: no-repeat;
+	margin:auto;
+	background-position: center; 
+}
+#uploadedFiles
+{
+	border-style: solid;
+    border-width: medium;
+	width: 500px;
+	background-color: F7C63C;
+}
