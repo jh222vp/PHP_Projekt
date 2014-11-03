@@ -9,7 +9,6 @@
 		
 		public function __construct()
 		{
-			//$this->myConnection = new mysqli("mysql14.citynetwork.se", "132212-vz49232", "JagheterJonas1", "132212-projekt");
 			$this->settings = new Settings();
 			$this->connect = $this->settings->databaseSettings();
 		}
