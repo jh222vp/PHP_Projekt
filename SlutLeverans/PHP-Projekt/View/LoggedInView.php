@@ -29,6 +29,10 @@
 		{
 			return true;
 		}
+		else
+		{
+			return false;
+		}
 	}
 	//Radioknappar för mediavärden
 	public function RadioButtonValue()
@@ -60,12 +64,20 @@
 	
 	public function getFileName()
 	{
+		if(isset($_FILES['file']['name']))
+		{
+		$this->name = $_FILES['file']['name'];
 		return $this->name;
+		}
 	}
 	
 	public function getFileTemp()
 	{
-		return $this->file;
+		if(isset($_FILES['file']['tmp_name']))
+		{
+			$this->file = $_FILES['file']['tmp_name'];
+			return $this->file;
+		}
 	}
 	
 	public function ClickedDeleteFile()
@@ -187,6 +199,42 @@
 		}
 	}
 	
+	public function PlayAudio($url)
+	{
+		$urlToFile = $url[0];
+		$tja =  
+		"<audio controls>
+			<source src='$urlToFile' type='audio/mp3'>
+			<source src='$urlToFile' type='audio/ogg'>
+			<source src='$urlToFile' type='audio/mpeg'>
+			Your browser does not support the audio element.
+			</audio>";
+			$this->message = $tja;
+			return $this->message;
+	}
+	
+	public function PlayVideo($url)
+	{
+		$urlToFile = $url[0];
+		$tja = " <video autoplay width='320' height='240' controls>
+			<source src='$urlToFile' type='video/mp4'>
+			<source src='$urlToFile' type='video/ogg'>
+			Your browser does not support the video tag.
+			</video> ";
+
+			$this->message = $tja;
+			return $this->message;
+	}
+	
+	public function ShowImage($url)
+	{
+		$urlToFile = $url[0];
+		$tja = "<img src='$urlToFile' width='500' height='500'>";
+
+			$this->message = $tja;
+			return $this->message;
+	}
+	
 	public function imagePlayback()
 	{
 		if(isset($_GET['image_id']))
@@ -196,11 +244,58 @@
 		}
 	}
 	
+	public function displaySearchedFile($message)
+	{
+		$i = 0;
+		$arrayWithAllFiles;
+		foreach($message as $item)
+		{
+			$id = $item[2];
+			$url = $item;
+			
+			$nameOfFile = $item;
+			$category = $item;
+			
+			
+			switch($category)
+			{
+				case "video": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?video_id=$id'><img src='./images/play_video.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "audio": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?audio_id=$id'><img src='./images/play_audio.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "image": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><img src='./images/view_image.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "other": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+			}
+		}
+			
+			$this->message = implode($arrayWithAllFiles);
+			return $this->message;
+
+	}
 	
 	//Visar alla filer som finns uppladdade
 	public function displayAllFilesMessage($message)
 	{
-		$this->message = implode($message);
+		$i = 0;
+		$arrayWithAllFiles;
+		foreach($message as $item)
+		{
+			$id = $item[0];
+			$url = $item[1];
+			$nameOfFile = $item[2];
+			$category = $item[3];
+			
+			switch($category)
+			{
+				case "video": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?video_id=$id'><img src='./images/play_video.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "audio": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?audio_id=$id'><img src='./images/play_audio.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "image": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><img src='./images/view_image.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+				case "other": {$arrayWithAllFiles[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'></a><a href='$url'> $nameOfFile</a>"; $i++; break;}
+			}
+		}
+			if(isset($arrayWithAllFiles))
+			{
+				$this->message = implode($arrayWithAllFiles);
+				return $this->message;
+			}		
 	}
 	//Visar varnings/informations meddelanden
 	public function displayMessage($message)
@@ -317,7 +412,7 @@
 		</form>
 		
 		<form action='?search' method='POST'>  
-		Search: <input type='text' name='term' value=' ' />  
+		Search: <input type='text' name='term' value='' />  
 		<input type='submit' value='Search!' />  
 		</form>
 
@@ -336,6 +431,7 @@ $this->storedNote
 		</div>
 		</center>
 		<a href='?logOut'>Logga ut</a>";
+		
 		return $ret;
 	}
 }

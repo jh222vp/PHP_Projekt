@@ -12,7 +12,7 @@ class LoginModel{
 	public function loginValidation($username, $password)
 	{		
 		//Specificerar uppgifter för anslutning mot önskad datorbas samt SQL-Query
-		$myConnection = new mysqli("127.0.0.1", "root", "", "phpproject");
+		$myConnection = new mysqli("mysql14.citynetwork.se", "132212-vz49232", "JagheterJonas1", "132212-projekt");
 		$sqlCommand = "SELECT * FROM users WHERE username='$username' AND password='$password'";
 	
 		//Sparar undan resultatet i variabler
@@ -32,7 +32,7 @@ class LoginModel{
 	public function isTheUserAdmin($username, $password)
 	{
 		//Specificerar uppgifter för anslutning mot önskad datorbas samt SQL-Query
-		$myConnection1 = new mysqli("127.0.0.1", "root", "", "projektphp");
+		$myConnection1 = new mysqli("mysql14.citynetwork.se", "132212-vz49232", "JagheterJonas1", "132212-projekt");
 		$sqlCommand1 = "SELECT * FROM users WHERE username='$username' AND password='$password'";
 	
 		//Sparar undan resultatet i variabler

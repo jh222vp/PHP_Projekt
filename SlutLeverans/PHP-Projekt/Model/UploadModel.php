@@ -1,21 +1,27 @@
 ﻿<?php
 		require_once('./Controller/LoginController.php');
+		require_once('./Settings/Settings.php');
 		
 		class UploadModel{
 		private $myConnection;
+		private $settings;
+		private $connect;
 		
 		public function __construct()
 		{
-			$this->myConnection = new mysqli("127.0.0.1", "root", "", "projektphp");
+			//$this->myConnection = new mysqli("mysql14.citynetwork.se", "132212-vz49232", "JagheterJonas1", "132212-projekt");
+			$this->settings = new Settings();
+			$this->connect = $this->settings->databaseSettings();
 		}
 		
 		/* Kontrollerar den uppladdade filens format och validerar om det är ett godkänt
 		sådant. Existerar inte filformatet med arrayen "$Allowed så kastas ett undantag */
-		public function isTheFileValid($file, $name)
+		public function isTheFileValid($file, $name, $clickedSubmit)
 		{
-			if(isset($_POST['submit']))
+			$t = $this->settings->databaseSettings();
+			if(isset($clickedSubmit))
 			{
-				$allowed =  array("GIF","PNG","JPG","MP4", "mp4", "WMA", "wma", "MP3", "mp3", "txt", "TXT");
+				$allowed =  array("GIF", "gif", "PNG", "png", "JPG", "jpg", "JPEG", "jpeg", "MP4", "mp4", "WMA", "wma", "MP3", "mp3", "txt", "TXT");
 				$ext = pathinfo($name, PATHINFO_EXTENSION);
 			
 				if(!in_array($ext,$allowed))
@@ -34,7 +40,7 @@
 		{
 			$sqlCommand = "SELECT * FROM files WHERE name='$name'";
 	
-			$result = mysqli_query($this->myConnection, $sqlCommand);		
+			$result = mysqli_query($this->connect, $sqlCommand);		
 			$row_count = mysqli_num_rows($result);
 			
 			if($row_count > 0)
@@ -45,28 +51,31 @@
 		}
 		
 		/*Uppladdningsgfunktion av filer till datorbasen och FTP Servern */
-		public function uploadFile($file, $name, $category, $chmodValue)
+		public function uploadFile($file, $name, $category, $chmodValue, $clickedSubmit)
 		{
-		if(isset($_POST['submit']))
+		if($clickedSubmit)
 			{
-			$name = $_FILES['file']['name'];
-			$temp = $_FILES['file']['tmp_name'];
-			$remote_file = '/jh222vp.com/public_html/uploaded/'.$name;
-			$fileName = pathinfo($name, PATHINFO_BASENAME);
+			$fileName = pathinfo($name, PATHINFO_FILENAME);
+			$file_exstension = pathinfo($name, PATHINFO_EXTENSION);
 			
-			$ftp_server = "ftp.citynetwork.se";
-			$ftp_username = "132212-master";
-			$ftp_password = "Bioshock1";
+			$date = date('Y-m-d H:i:s');
+
+			$remote_file = '/jh222vp.com/public_html/uploaded/'.$fileName."-".$date.".".$file_exstension;
+			$newFileName = $fileName."-".$date.".".$file_exstension;
+			
+			$ftp_server = $this->settings->FTP_Server();
+			$ftp_username = $this->settings->FTP_User();
+			$ftp_password = $this->settings->FTP_Password();
 			
 			$ftp_conn = ftp_connect($ftp_server) or die("Could not connect to $ftp_server");
 			$login = ftp_login($ftp_conn, $ftp_username, $ftp_password);
 
-			if(empty($temp))
+			if(empty($file))
 			{
 				return "fileWasNotUploaded";
 			}
 			ftp_pasv($ftp_conn, true);
-			if(ftp_put($ftp_conn, $remote_file, $temp, FTP_BINARY))
+			if(ftp_put($ftp_conn, $remote_file, $file, FTP_BINARY))
 			{
 				if (ftp_chmod($ftp_conn, $chmodValue, $remote_file) !== false)
 				  {
@@ -75,7 +84,7 @@
 				  {
 				  return "chmodFailed";
 				  }
-				}
+			}
 			else
 			{
 				return "fileWasNotUploaded";
@@ -83,9 +92,10 @@
 			
 			ftp_close($ftp_conn);			
 			
-			$url = "http://jh222vp.com/uploaded/".$name;
-			$sqlCommand = "INSERT INTO files VALUE ('', '$fileName', '$url', '$category')";
-			$result = mysqli_query($this->myConnection, $sqlCommand);
+		
+			$url = "http://jh222vp.com/uploaded/".$newFileName;
+			$sqlCommand = "INSERT INTO files VALUE ('', '$newFileName', '$url', '$category')";
+			$result = mysqli_query($this->connect, $sqlCommand);
 			return "fileWasUploaded";
 			}
 		}
@@ -105,7 +115,7 @@
 			case 5: {$sqlCommandd = "SELECT * FROM `files` WHERE `category` = 'other'";break;}
 		}
 		
-		$query = mysqli_query($this->myConnection, $sqlCommandd);
+		$query = mysqli_query($this->connect, $sqlCommandd);
 		
 			$i=0;
 			while($row = mysqli_fetch_assoc($query))
@@ -118,22 +128,22 @@
 				
 				if($category == "video" )
 				{
-					$ny[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?video_id=$id'><img src='./images/play_video.png' height='32' width='32'></a><a href='$url'> $name</a>";
+					$ny[$i++] = array($id, $url, $name, "video");
 					$i++;
 				}
 				else if($category == "audio")
 				{
-					$ny[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?audio_id=$id'><img src='./images/play_audio.png' height='32' width='32'></a><a href='$url'> $name</a>";
+					$ny[$i++] = array($id, $url, $name, "audio");
 					$i++;
 				}
 				else if($category == "image")
 				{
-					$ny[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><img src='./images/view_image.png' height='32' width='32'></a><a href='$url'> $name</a>";
+					$ny[$i++] = array($id, $url, $name, "image");
 					$i++;
 				}
 				else if($category == "other")
 				{
-					$ny[$i++] = "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><a href='$url'> $name</a>";
+					$ny[$i++] = array($id, $url, $name, "other");//"<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><a href='$url'> $name</a>";
 					$i++;
 				}
 			}
@@ -154,17 +164,18 @@
 			$sqlCommandd = "DELETE FROM files WHERE ID = $id";
 			
 			$nameQuery = "SELECT name FROM `files` WHERE ID = $id";
-			$ily = mysqli_query($this->myConnection, $nameQuery);
+			$ily = mysqli_query($this->connect, $nameQuery);
 		
 			$row = mysqli_fetch_assoc($ily);
 			$name = $row['name'];
 		
-			$query = mysqli_query($this->myConnection, $sqlCommandd);
+			$query = mysqli_query($this->connect, $sqlCommandd);
 			
 			$file = '/jh222vp.com/public_html/uploaded/'.$name;
-			$ftp_server = "ftp.citynetwork.se";
-			$ftp_username = "132212-master";
-			$ftp_password = "Bioshock1";
+			
+			$ftp_server = $this->settings->FTP_Server();
+			$ftp_username = $this->settings->FTP_User();
+			$ftp_password = $this->settings->FTP_Password();
 
 			//Skapar anslutning
 			$conn_id = ftp_connect($ftp_server);
@@ -188,26 +199,27 @@
 		/*Sökfunktion som matchar vad användaren skriver in mot datorbasen */
 		public function SearchForFile($searchString)
 		{
-			$sqlCommand = "SELECT * FROM files WHERE name LIKE '$searchString%'";
-			$result = mysqli_query($this->myConnection, $sqlCommand);		
+			$sqlCommand = "SELECT * FROM files WHERE name LIKE '%$searchString%'";
+			$result = mysqli_query($this->connect, $sqlCommand);		
 			$row_count = mysqli_num_rows($result);
-			$ily = mysqli_query($this->myConnection, $sqlCommand);
+			$ily = mysqli_query($this->connect, $sqlCommand);
 			$row = mysqli_fetch_assoc($ily);
 			$nameOfFile = $row['name'];
 			$id = $row['ID'];
 			$name = $row['category'];
 			$url = $row['url'];
+			$i = 0;
 
-
-			
 			if($row_count > 0)
 			{
 				switch($name)
 				{
-					case "video": {return "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?video_id=$id'><img src='./images/play_video.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; break;}
-					case "audio": {return "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?audio_id=$id'><img src='./images/play_audio.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; break;}
-					case "image": {return "<a href='?Delete_id=$id'><img src='./images/delete.png' height='32' width='32'></a><a href='?image_id=$id'><img src='./images/view_image.png' height='32' width='32'></a><a href='$url'> $nameOfFile</a>"; break;}
+					case "video": {$searchedFile[$i++] = array($id,$url,$nameOfFile, "video", "search");}
+					case "audio": {$searchedFile[$i++] = array($id,$url,$nameOfFile, "audio", "search");}
+					case "image": {$searchedFile[$i++] = array($id,$url,$nameOfFile, "image", "search");}
+					case "other": {$searchedFile[$i++] = array($id,$url,$nameOfFile, "other", "search");}
 				}
+				return $searchedFile;
 			}
 			else
 			{
@@ -218,50 +230,46 @@
 		/*Uppspelning av video*/
 		public function PlayVideoFile($id)
 		{
+			$i = 0;
 			$query = "SELECT * FROM files WHERE ID = $id AND category = 'video'";
-			$sendCommand = mysqli_query($this->myConnection, $query);
+			$sendCommand = mysqli_query($this->connect, $query);
 			$row = mysqli_fetch_assoc($sendCommand);
 			$urlToFile = $row['url'];
 			
 						
-			return " <video autoplay width='320' height='240' controls>
-			<source src='$urlToFile' type='video/mp4'>
-			<source src='$urlToFile' type='video/ogg'>
-			Your browser does not support the video tag.
-			</video> ";
+			return $searchedFile[$i++] = array($urlToFile,"video");
+
 		}
 		
 		/*Uppspelning av ljud*/
 		public function PlayAudioFile($id)
 		{
+			$i = 0;
 			$query = "SELECT * FROM files WHERE ID = $id AND category = 'audio'";
-			$sendCommand = mysqli_query($this->myConnection, $query);
+			$sendCommand = mysqli_query($this->connect, $query);
 			$row = mysqli_fetch_assoc($sendCommand);
 			$urlToFile = $row['url'];
-				
-			return "<audio controls>
-			<source src='$urlToFile' type='audio/mp3'>
-			<source src='$urlToFile' type='audio/ogg'>
-			<source src='$urlToFile' type='audio/mpeg'>
-			Your browser does not support the audio element.
-			</audio>";
+			
+			return $searchedFile[$i++] = array($urlToFile,"audio");
 		}
 		
 		/*Uppspelning av bild*/
 		public function ShowImageFile($id)
 		{
+			$i = 0;
 			$query = "SELECT * FROM files WHERE ID = $id AND category = 'image'";
-			$sendCommand = mysqli_query($this->myConnection, $query);
+			$sendCommand = mysqli_query($this->connect, $query);
 			$row = mysqli_fetch_assoc($sendCommand);
 			$urlToFile = $row['url'];
-			return "<img src='$urlToFile' width='500' height='500'>";
+			return $searchedFile[$i++] = array($urlToFile,"image");
+			
 		}
 		
 		/*Sparar undan önskad anteckning*/
 		public function SaveInputNote($saveNote)
 		{
 			$query = "UPDATE notes SET notes = '$saveNote' WHERE ID = 1";
-			$sendCommand = mysqli_query($this->myConnection, $query);
+			$sendCommand = mysqli_query($this->connect, $query);
 			return "NoteIsSaved";
 		}
 		
@@ -269,7 +277,7 @@
 		public function ReadFromNote()
 		{
 			$query = "SELECT * FROM notes WHERE ID='1'";
-			$sendCommand = mysqli_query($this->myConnection, $query);
+			$sendCommand = mysqli_query($this->connect, $query);
 			$row = mysqli_fetch_assoc($sendCommand); 
 			$note = $row['notes'];
 			return $note;

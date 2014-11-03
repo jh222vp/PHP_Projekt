@@ -17,7 +17,7 @@ class UploadController{
 	private $serviceHelper;
 	private $con;
 	private $upload;
-
+	
 	//Konstruktor
 	public function __construct()
 	{
@@ -77,6 +77,7 @@ class UploadController{
 		{
 			$searchString = $this->loggedInView->SearchFile();
 			$message = $this->upload->SearchForFile($searchString);
+
 			return $message;
 		}
 		
@@ -92,28 +93,28 @@ class UploadController{
 		eller inte, kontrollerar också så att filformatet är i ett godkänt format*/
 		if($this->loggedInView->uploadFile());
 		{
+			$clickedSubmit = true;
 			$selected_radio = $this->loggedInView->RadioButtonValue();
 			$chmodValue = $this->loggedInView->chModButtonValue();
 			$this->loggedInView->collectFileNames();
 			$name = $this->loggedInView->getFileName();
 			$file = $this->loggedInView->getFileTemp();
-					if($this->upload->sameNameOnFile($name))
-					{
-						return "FileNameAlreadyExist";
-					}
-					if($this->upload->isTheFileValid($file, $name))
+
+					if($this->upload->isTheFileValid($file, $name, $clickedSubmit))
 					{
 						return "fileIsNotValidFormat";
 					}	
-					if($message = $this->upload->uploadFile($file, $name, $selected_radio, $chmodValue))
+					if($message = $this->upload->uploadFile($file, $name, $selected_radio, $chmodValue, $clickedSubmit))
 					{
 						return $message;
 					}									
 		}
+		$clickedSubmit = false;
 
 		/* Kontroll om video, ljud eller en bild ska visas */
 		if($id = $this->loggedInView->videoPlayback())
 		{
+			
 			$message = $this->upload->PlayVideoFile($id);
 			return $message;
 		}

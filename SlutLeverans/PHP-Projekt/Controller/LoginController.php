@@ -35,18 +35,37 @@ class LoginController{
 	
 	$this->serviceHelper = new serviceHelper();
 	$this->cookieStorage = new CookieStorage();
-	$this->con = new mysqli("127.0.0.1", "root", "", "projektphp");
+	$this->con = new mysqli("mysql14.citynetwork.se", "132212-vz49232", "JagheterJonas1", "132212-projekt");
 	}
 	
 	
 	public function messageOutToUser($choice)
 	{
-		if(is_array($choice))
+
+		if(is_array($choice) && in_array("search", $choice))
 		{
-			foreach($choice as $item)
-			{
-				$this->loggedInView->displayAllFilesMessage($choice);
-			}
+			$message = $this->loggedInView->displaySearchedFile($choice);
+			$this->loggedInView->displayMessage($message);
+		}
+		else if(is_array($choice) && in_array("audio", $choice))
+		{
+			$message = $this->loggedInView->PlayAudio($choice);
+			$this->loggedInView->displayMessage($message);
+		}
+		else if(is_array($choice) && in_array("video", $choice))
+		{
+			$message = $this->loggedInView->PlayVideo($choice);
+			$this->loggedInView->displayMessage($message);
+		}
+		else if(is_array($choice) && in_array("image", $choice))
+		{
+			$message = $this->loggedInView->ShowImage($choice);
+			$this->loggedInView->displayMessage($message);
+		}
+		else if(is_array($choice))
+		{
+			$message = $this->loggedInView->displayAllFilesMessage($choice);
+			$this->loggedInView->displayMessage($message);
 		}
 		else
 		{
@@ -105,6 +124,7 @@ class LoginController{
 		if($this->model->getUserIsAuthenticated($wBrowserAgent))
 		{
 			$choice = $this->uploadController->doController();
+
 			$this->messageOutToUser($choice);
 			return $this->loggedInView->LoggedInView();
 		}
